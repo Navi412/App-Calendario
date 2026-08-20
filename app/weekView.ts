@@ -1,15 +1,31 @@
 import { DateTime } from "luxon";
-import type { TimedEvent } from "../core/model/event.js";
-import { createEventBlockButton, layoutDay, renderNowLine, type EventClickHandler } from "./dayView.js";
+import {
+  createEventBlockButton,
+  layoutDay,
+  renderNowLine,
+  type EventClickHandler,
+  type EventDragHandler,
+  type EventResizeHandler,
+} from "./dayView.js";
+import type { ScheduledEvent } from "./eventPresentation.js";
 import { HOUR_HEIGHT_PX } from "./gridConstants.js";
+
+/** Bajo qué columna (fecha) cae un punto de la pantalla -- para saber a qué día se arrastró un bloque al soltarlo. */
+function resolveDateAtPoint(clientX: number, clientY: number): string | null {
+  const el = document.elementFromPoint(clientX, clientY);
+  const column = el?.closest<HTMLElement>(".week-day-column[data-date]");
+  return column?.dataset["date"] ?? null;
+}
 
 export function renderWeekGrid(
   container: HTMLElement,
   weekDates: readonly string[],
-  eventsByDate: ReadonlyMap<string, TimedEvent[]>,
+  eventsByDate: ReadonlyMap<string, ScheduledEvent[]>,
   viewerTzId: string,
   todayDate: string,
   onEventClick: EventClickHandler,
+  onEventDrag: EventDragHandler,
+  onEventResize: EventResizeHandler,
 ): void {
   container.innerHTML = "";
 
@@ -52,7 +68,17 @@ export function renderWeekGrid(
 
     const blocks = layoutDay(eventsByDate.get(date) ?? [], date, viewerTzId);
     for (const block of blocks) {
-      column.appendChild(createEventBlockButton(block, "week-event-block", onEventClick));
+      column.appendChild(
+        createEventBlockButton(
+          block,
+          "week-event-block",
+          date,
+          onEventClick,
+          onEventDrag,
+          onEventResize,
+          resolveDateAtPoint,
+        ),
+      );
     }
 
     renderNowLine(column, date, viewerTzId);

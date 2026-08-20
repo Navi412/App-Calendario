@@ -1,14 +1,13 @@
 import { DateTime } from "luxon";
-import type { TimedEvent } from "../core/model/event.js";
-import { toViewerInterval } from "./eventPresentation.js";
+import type { AllDayEvent, CalendarEvent } from "../core/model/event.js";
+import { toViewerWallInterval, type ScheduledEvent } from "./eventPresentation.js";
 import { EVENT_COLOR_VAR } from "./formFields.js";
-import type { EventClickHandler } from "./dayView.js";
 
 const MAX_CHIPS_PER_CELL = 3;
 const WEEKDAY_LABELS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"];
 
 export interface MonthGridHandlers {
-  readonly onEventClick: EventClickHandler;
+  readonly onEventClick: (event: CalendarEvent) => void;
   readonly onDayClick: (dateIso: string) => void;
 }
 
@@ -16,7 +15,8 @@ export interface MonthGridHandlers {
 export function renderMonthGrid(
   container: HTMLElement,
   monthAnchorDate: string,
-  eventsByDate: ReadonlyMap<string, TimedEvent[]>,
+  eventsByDate: ReadonlyMap<string, ScheduledEvent[]>,
+  alldayByDate: ReadonlyMap<string, AllDayEvent[]>,
   viewerTzId: string,
   todayDate: string,
   handlers: MonthGridHandlers,
@@ -56,22 +56,30 @@ export function renderMonthGrid(
     dayNumBtn.addEventListener("click", () => handlers.onDayClick(dateIso));
     cell.appendChild(dayNumBtn);
 
-    const dayEvents = eventsByDate.get(dateIso) ?? [];
-    for (const event of dayEvents.slice(0, MAX_CHIPS_PER_CELL)) {
-      const { startTime } = toViewerInterval(event, viewerTzId);
+    // Día completo primero (sin hora), como en Google Calendar; luego hora absoluta/flotante ordenados por hora.
+    const allDayEvents = alldayByDate.get(dateIso) ?? [];
+    const timedEvents = eventsByDate.get(dateIso) ?? [];
+    const combined: CalendarEvent[] = [...allDayEvents, ...timedEvents];
+
+    for (const event of combined.slice(0, MAX_CHIPS_PER_CELL)) {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "month-chip";
       chip.style.setProperty("--event-color", EVENT_COLOR_VAR[event.color]);
-      chip.textContent = `${startTime.slice(0, 5)} ${event.title}`;
+      const recurringMark = event.kind === "timed" && event.isRecurring ? "↻ " : "";
+      const label =
+        event.kind === "allday"
+          ? event.title
+          : `${toViewerWallInterval(event, viewerTzId).startTime.slice(0, 5)} ${recurringMark}${event.title}`;
+      chip.textContent = label;
       chip.addEventListener("click", () => handlers.onEventClick(event));
       cell.appendChild(chip);
     }
-    if (dayEvents.length > MAX_CHIPS_PER_CELL) {
+    if (combined.length > MAX_CHIPS_PER_CELL) {
       const more = document.createElement("button");
       more.type = "button";
       more.className = "month-chip-more";
-      more.textContent = `+${dayEvents.length - MAX_CHIPS_PER_CELL} más`;
+      more.textContent = `+${combined.length - MAX_CHIPS_PER_CELL} más`;
       more.title = "Ver este día";
       more.addEventListener("click", () => handlers.onDayClick(dateIso));
       cell.appendChild(more);

@@ -26,6 +26,14 @@ export interface TimedEvent extends EventBase {
   readonly endDate: IsoDate;
   readonly endTime: IsoTime;
   readonly tzId: IanaTzId;
+  /**
+   * true si este objeto es una ocurrencia generada de una serie recurrente
+   * (ver core/recurrence/expandRecurrence.ts), no un evento suelto. `id`
+   * identifica a la serie completa, no a esta ocurrencia individual --
+   * todavía no hay excepciones de instancia (rebanada 6 de DESIGN.md §6),
+   * así que editar o borrar afecta a toda la serie.
+   */
+  readonly isRecurring?: boolean;
 }
 
 /** Hora local flotante: sin zona, se reinterpreta contra la zona del visor (un recordatorio diario). */

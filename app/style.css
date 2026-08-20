@@ -21,9 +21,18 @@
   box-sizing: border-box;
 }
 
+/* Sin esto, cualquier regla de `display` con más especificidad que el
+   estilo por defecto del user-agent (ej. `form label { display: flex }`)
+   pisa el atributo `hidden` y el elemento se sigue viendo aunque JS lo
+   marque como oculto -- pasaba con el campo "Hasta" de recurrencia y con
+   los paneles de confirmación de borrado. */
+[hidden] {
+  display: none !important;
+}
+
 body {
   font-family: "VT323", monospace;
-  font-size: 20px;
+  font-size: 23px;
   margin: 0;
   padding: 1.25rem;
   background: var(--bg);
@@ -39,15 +48,15 @@ body {
 /* --- Botones pixel: borde duro + sombra "offset" sin blur, se hunden al pulsar --- */
 .pixel-btn {
   font-family: "Press Start 2P", monospace;
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: var(--text);
   background: var(--panel-bg-alt);
   border: 2px solid var(--border);
   box-shadow: 3px 3px 0 var(--shadow);
-  padding: 0.5rem 0.7rem;
+  padding: 0.65rem 0.9rem;
   cursor: pointer;
   border-radius: 0;
-  line-height: 1;
+  line-height: 1.3;
 }
 
 .pixel-btn:hover {
@@ -113,7 +122,7 @@ body {
 }
 
 .app-title {
-  font-size: 1rem;
+  font-size: 1.3rem;
   color: var(--text);
   margin: 0;
 }
@@ -125,22 +134,298 @@ body {
 }
 
 .day-nav .pixel-btn {
-  padding: 0.5rem 0.6rem;
+  padding: 0.6rem 0.75rem;
 }
 
 .current-date-label {
   font-family: "Press Start 2P", monospace;
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--accent-yellow);
   min-width: 9ch;
 }
 
 .viewer-tz {
-  margin-left: auto;
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: 1.05rem;
   border: 2px dashed var(--border);
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.7rem;
+}
+
+/* Agrupa búsqueda/avisos/zona horaria para que envuelvan juntos como bloque
+   -- si no, en pantallas más estrechas la campana quedaba huérfana en su
+   propia línea en vez de envolver junto al resto. */
+.topbar-trailing {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+/* --- Selector de calendario: el botón siempre muestra el activo --- */
+.calendar-switcher {
+  position: relative;
+}
+
+.calendar-switcher-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.calendar-dot {
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  background: var(--cal-color, var(--accent-blue));
+  border: 2px solid var(--shadow);
+  flex-shrink: 0;
+}
+
+.calendar-switcher-name {
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-switcher-caret {
+  font-size: 0.7rem;
+}
+
+.calendar-switcher-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  width: max(260px, 100%);
+  background: var(--panel-bg);
+  border: 2px solid var(--border);
+  box-shadow: 4px 4px 0 var(--shadow);
+  padding: 0.7rem;
+}
+
+.calendar-list {
+  list-style: none;
+  margin: 0 0 0.7rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.calendar-list-item {
+  display: flex;
+  align-items: stretch;
+  gap: 0.3rem;
+}
+
+.calendar-list-select {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--panel-bg-alt);
+  color: var(--text-muted);
+  border: 2px solid var(--border);
+  padding: 0.45rem 0.6rem;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.calendar-list-select:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.calendar-list-item.is-active .calendar-list-select {
+  background: var(--accent-blue);
+  color: var(--panel-bg);
+  border-color: var(--shadow);
+}
+
+.calendar-list-delete {
+  background: var(--panel-bg-alt);
+  color: var(--text-muted);
+  border: 2px solid var(--border);
+  padding: 0 0.6rem;
+  cursor: pointer;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.85rem;
+}
+
+.calendar-list-delete:hover {
+  background: var(--accent-red);
+  color: var(--text);
+  border-color: var(--shadow);
+}
+
+.calendar-list-edit {
+  background: var(--panel-bg-alt);
+  color: var(--text-muted);
+  border: 2px solid var(--border);
+  padding: 0 0.6rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.calendar-list-edit:hover {
+  background: var(--accent-blue);
+  color: var(--panel-bg);
+  border-color: var(--shadow);
+}
+
+.calendar-list-item--editing {
+  display: block;
+}
+
+.calendar-edit-form,
+.calendar-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.calendar-create-form {
+  border-top: 2px dashed var(--border);
+  padding-top: 0.7rem;
+}
+
+.calendar-edit-form {
+  border: 2px dashed var(--accent-blue);
+  padding: 0.6rem;
+}
+
+.calendar-edit-form input,
+.calendar-create-form input {
+  font-family: "VT323", monospace;
+  font-size: 1.1rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--border);
+  padding: 0.4rem 0.5rem;
+}
+
+.calendar-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.calendar-edit-actions .pixel-btn {
+  flex: 1;
+}
+
+.calendar-ics-actions {
+  display: flex;
+  gap: 0.5rem;
+  border-top: 2px dashed var(--border);
+  padding-top: 0.7rem;
+}
+
+.calendar-ics-actions .pixel-btn {
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+/* --- Buscador --- */
+.search-box {
+  position: relative;
+}
+
+.search-input {
+  font-family: "VT323", monospace;
+  font-size: 1.1rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--border);
+  padding: 0.45rem 0.6rem;
+  width: 16rem;
+  max-width: 40vw;
+}
+
+.search-input:focus {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: 1px;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--panel-bg);
+  border: 2px solid var(--border);
+  box-shadow: 4px 4px 0 var(--shadow);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.search-result {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  background: none;
+  color: var(--text);
+  border: none;
+  border-bottom: 1px solid var(--grid-line);
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  font-family: "VT323", monospace;
+  font-size: 1rem;
+}
+
+.search-result:last-child {
+  border-bottom: none;
+}
+
+.search-result:hover {
+  background: var(--panel-bg-alt);
+}
+
+.search-result-title {
+  color: var(--text);
+}
+
+.search-result-date {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.search-empty {
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* --- Aviso de eventos próximos --- */
+.notifications-toggle {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.notifications-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.notifications-toggle.is-active {
+  color: var(--accent-yellow);
+  background: var(--panel-bg-alt);
+}
+
+.notify-lead-select {
+  font-family: "VT323", monospace;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--panel-bg-alt);
+  border: 2px solid var(--border);
+  padding: 0.35rem 0.4rem;
+  cursor: pointer;
 }
 
 /* --- Selector Día/Semana/Mes --- */
@@ -152,12 +437,12 @@ body {
 
 .view-switcher button {
   font-family: "Press Start 2P", monospace;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   background: var(--panel-bg-alt);
   border: none;
   border-right: 2px solid var(--border);
-  padding: 0.55rem 0.6rem;
+  padding: 0.7rem 0.8rem;
   cursor: pointer;
 }
 
@@ -178,7 +463,7 @@ body {
 /* --- Layout general: sidebar + vista de día --- */
 .layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 320px 1fr;
   gap: 1.25rem;
   align-items: start;
 }
@@ -195,61 +480,63 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.8rem;
-  font-size: 0.75rem;
+  padding: 0.9rem;
+  font-size: 0.9rem;
 }
 
 .event-panel {
   background: var(--panel-bg);
   border: 2px solid var(--border);
   box-shadow: 4px 4px 0 var(--shadow);
-  padding: 1rem;
-}
-
-.event-panel[hidden] {
-  display: none;
+  padding: 1.25rem;
 }
 
 .event-panel h2 {
   font-family: "Press Start 2P", monospace;
-  font-size: 0.7rem;
-  margin: 0 0 0.9rem;
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
   color: var(--accent-blue);
-}
-
-form[hidden] {
-  display: none;
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: 0.85rem;
 }
 
 form label {
   display: flex;
   flex-direction: column;
-  font-size: 0.85rem;
+  font-size: 1.05rem;
   color: var(--text-muted);
-  gap: 0.25rem;
+  gap: 0.3rem;
 }
 
 form input,
 form select {
   font-family: "VT323", monospace;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   color: var(--text);
   background: var(--bg);
   border: 2px solid var(--border);
   border-radius: 0;
-  padding: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  min-height: 2.6rem;
 }
 
 form input:focus,
 form select:focus {
-  outline: 2px solid var(--accent-blue);
+  outline: 3px solid var(--accent-blue);
   outline-offset: 1px;
+}
+
+/* Los inputs de fecha/hora nativos son el punto de fricción más frecuente
+   (segmentos diminutos, difícil corregir un error de un toque) -- se les da
+   más tamaño todavía que al resto de campos de texto. */
+form input[type="time"],
+form input[type="date"] {
+  font-size: 1.55rem;
+  padding: 0.55rem 0.7rem;
 }
 
 .form-actions {
@@ -266,13 +553,145 @@ form select:focus {
   background: var(--accent-red);
   color: var(--text);
   border: 2px solid var(--shadow);
-  padding: 0.4rem 0.6rem;
-  font-size: 0.85rem;
+  padding: 0.5rem 0.7rem;
+  font-size: 1rem;
   margin: 0;
 }
 
-.form-error[hidden] {
-  display: none;
+.recurring-note {
+  border: 2px dashed var(--border);
+  color: var(--text-muted);
+  font-size: 1rem;
+  padding: 0.7rem;
+  margin: 0 0 0.7rem;
+}
+
+.series-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0 0 0.7rem;
+}
+
+.series-title-row .series-title-display {
+  font-size: 1.1rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rename-series-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border: 2px dashed var(--accent-blue);
+  padding: 0.6rem;
+  margin: 0 0 0.7rem;
+}
+
+.rename-series-form input {
+  font-family: "VT323", monospace;
+  font-size: 1.2rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--border);
+  padding: 0.4rem 0.5rem;
+}
+
+/* --- Selector de tipo de evento (hora específica/día completo) --- */
+/* Grupo de botones tipo segmented-control (mismo patrón que .view-switcher):
+   una sola caja con borde/sombra pixel, las opciones se reparten el ancho a
+   partes iguales y se separan por un borde interior -- así quedan
+   "cuadradas" entre sí en vez de flotar como texto suelto. */
+.kind-switcher {
+  display: flex;
+  border: 2px solid var(--border);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+
+.kind-switcher .kind-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  background: var(--panel-bg-alt);
+  padding: 0.7rem 0.5rem;
+  border-right: 2px solid var(--border);
+  text-align: center;
+}
+
+.kind-switcher .kind-option:last-child {
+  border-right: none;
+}
+
+.kind-switcher .kind-option:hover {
+  background: var(--panel-bg);
+  color: var(--text);
+}
+
+.kind-switcher .kind-option:has(input:checked) {
+  background: var(--accent-blue);
+  color: var(--panel-bg);
+}
+
+/* Casilla de "marcar" con estilo pixel art: cuadrada y hueca sin marcar: un
+   tick dibujado a base de bloques (SVG con crispEdges, sin curvas ni
+   antialiasing, mismo truco que el favicon) al marcarla.
+   min-height/padding en 0 porque si no hereda el min-height:2.6rem de
+   "form input" (pensado para los campos de fecha/hora) y sale un
+   rectángulo alto en vez de un cuadrado. */
+.kind-switcher .kind-option input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: 2px solid currentColor;
+  border-radius: 0;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 13px 10px;
+  flex-shrink: 0;
+}
+
+.kind-switcher .kind-option input[type="radio"]:checked {
+  background-color: var(--panel-bg);
+  border-color: var(--shadow);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 8' shape-rendering='crispEdges'%3E%3Crect x='0' y='3' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='1' y='4' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='2' y='5' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='3' y='4' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='4' y='3' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='5' y='2' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='6' y='1' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='7' y='0' width='2' height='2' fill='%23ffec27'/%3E%3C/svg%3E");
+}
+
+.kind-option {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 1rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+form input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: var(--accent-blue);
+  cursor: pointer;
+}
+
+.kind-option:has(input:checked) {
+  color: var(--accent-yellow);
+}
+
+[data-kind-fields] {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
 }
 
 /* --- Selector de color del evento --- */
@@ -282,8 +701,8 @@ form select:focus {
 }
 
 .color-swatch {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   background: var(--swatch-color);
   border: 2px solid var(--shadow);
   cursor: pointer;
@@ -310,8 +729,47 @@ form select:focus {
   outline-offset: 2px;
 }
 
+/* --- Franja de eventos de día completo (día/semana) --- */
+.main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.allday-strip {
+  margin-left: 60px;
+  display: grid;
+  grid-template-columns: repeat(var(--allday-cols, 1), 1fr);
+  grid-auto-rows: 27px;
+  gap: 3px;
+  background: var(--panel-bg);
+  border: 2px solid var(--border);
+  box-shadow: 4px 4px 0 var(--shadow);
+  padding: 3px;
+}
+
+.allday-chip {
+  background: var(--event-color, var(--accent-blue));
+  color: var(--panel-bg);
+  border: 2px solid var(--shadow);
+  font-family: "VT323", monospace;
+  font-size: 0.95rem;
+  text-align: left;
+  padding: 1px 6px;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.allday-chip:hover {
+  filter: brightness(1.15);
+}
+
 /* --- Rejilla de día --- */
 .day-grid {
+  --inset-left: 60px;
+  --inset-right: 6px;
   position: relative;
   background: var(--panel-bg);
   border: 2px solid var(--border);
@@ -330,7 +788,7 @@ form select:focus {
 .hour-label {
   width: 56px;
   flex-shrink: 0;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   padding: 2px 6px;
   border-right: 2px solid var(--grid-line);
@@ -343,8 +801,8 @@ form select:focus {
 
 .event-block {
   position: absolute;
-  left: 60px;
-  right: 6px;
+  left: calc(var(--inset-left, 60px) + (100% - var(--inset-left, 60px) - var(--inset-right, 6px)) * var(--col-left, 0));
+  width: calc((100% - var(--inset-left, 60px) - var(--inset-right, 6px)) * var(--col-width, 1) - 4px);
   background: var(--event-color, var(--accent-blue));
   color: var(--panel-bg);
   border: 2px solid var(--shadow);
@@ -352,19 +810,55 @@ form select:focus {
   border-radius: 0;
   padding: 2px 6px;
   font-family: "VT323", monospace;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   text-align: left;
   overflow: hidden;
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
 }
 
 .event-block:hover {
   filter: brightness(1.15);
 }
 
-.event-block .event-time {
-  font-size: 0.75rem;
+.event-block--dragging {
+  cursor: grabbing;
+  z-index: 5;
   opacity: 0.85;
+  box-shadow: 4px 4px 0 var(--shadow);
+  outline: 2px dashed var(--accent-yellow);
+  outline-offset: 2px;
+}
+
+.event-block .event-time {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.event-block-resize-handle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 7px;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.event-block-resize-handle::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  width: 18px;
+  height: 2px;
+  background: var(--shadow);
+  opacity: 0.5;
+  transform: translateX(-50%);
+}
+
+.event-block:hover .event-block-resize-handle::after {
+  opacity: 0.9;
 }
 
 /* --- Línea de "ahora", como en Google Calendar --- */
@@ -417,14 +911,14 @@ form select:focus {
 }
 
 .week-header-weekday {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .week-header-daynum {
   font-family: "Press Start 2P", monospace;
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   color: var(--text);
   margin-top: 0.2rem;
 }
@@ -446,7 +940,7 @@ form select:focus {
 
 .hour-gutter-label {
   height: 48px;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   padding: 2px 6px;
   border-right: 2px solid var(--grid-line);
@@ -459,6 +953,8 @@ form select:focus {
 }
 
 .week-day-column {
+  --inset-left: 2px;
+  --inset-right: 2px;
   flex: 1;
   position: relative;
   border-left: 1px solid var(--grid-line);
@@ -472,9 +968,7 @@ form select:focus {
 }
 
 .week-event-block {
-  left: 2px;
-  right: 2px;
-  font-size: 0.65rem;
+  font-size: 0.78rem;
 }
 
 .week-day-column .now-line {
@@ -496,8 +990,8 @@ form select:focus {
 
 .month-weekday-label {
   text-align: center;
-  padding: 0.4rem;
-  font-size: 0.7rem;
+  padding: 0.5rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   text-transform: uppercase;
 }
@@ -508,13 +1002,13 @@ form select:focus {
 }
 
 .month-cell {
-  min-height: 118px;
+  min-height: 130px;
   border-left: 1px solid var(--grid-line);
   border-bottom: 1px solid var(--grid-line);
-  padding: 0.35rem;
+  padding: 0.4rem;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .month-cell.is-outside {
@@ -527,7 +1021,7 @@ form select:focus {
 
 .month-daynum {
   font-family: "Press Start 2P", monospace;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: var(--text);
   margin-bottom: 0.2rem;
   background: none;
@@ -551,8 +1045,8 @@ form select:focus {
   color: var(--panel-bg);
   border: 1px solid var(--shadow);
   font-family: "VT323", monospace;
-  font-size: 0.9rem;
-  line-height: 1.1;
+  font-size: 1rem;
+  line-height: 1.2;
   padding: 2px 5px;
   overflow: hidden;
   white-space: nowrap;
@@ -568,7 +1062,7 @@ form select:focus {
 
 .month-chip-more {
   font-family: "VT323", monospace;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: var(--text-muted);
   background: none;
   border: none;
@@ -595,7 +1089,7 @@ form select:focus {
 
 .modal-panel {
   position: relative;
-  width: min(420px, 100%);
+  width: min(500px, 100%);
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -608,10 +1102,10 @@ form select:focus {
   border: none;
   color: var(--text-muted);
   font-family: "Press Start 2P", monospace;
-  font-size: 1rem;
+  font-size: 1.2rem;
   cursor: pointer;
   line-height: 1;
-  padding: 0.2rem 0.4rem;
+  padding: 0.3rem 0.5rem;
 }
 
 .modal-close:hover {
@@ -622,12 +1116,8 @@ form select:focus {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   color: var(--text);
-}
-
-.modal-delete-confirm[hidden] {
-  display: none;
 }
 
 /* --- Pantalla de error de arranque --- */
@@ -639,7 +1129,7 @@ form select:focus {
 
 .boot-error-detail {
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 1rem;
   margin: 0.5rem 0 1rem;
 }
 
@@ -653,10 +1143,13 @@ form select:focus {
     gap: 0.6rem;
   }
 
-  .viewer-tz {
+  .topbar-trailing {
     margin-left: 0;
     width: 100%;
-    order: 10;
+  }
+
+  .viewer-tz {
+    width: 100%;
   }
 
   .layout {

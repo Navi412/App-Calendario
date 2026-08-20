@@ -19,3 +19,19 @@ export function validateInterval(
   }
   return null;
 }
+
+/**
+ * Para eventos de día completo: `endDateInclusive` es el último día que el
+ * usuario ve seleccionado en el formulario (inclusivo, más natural para
+ * elegir). Debe ser igual o posterior a la fecha de inicio -- la conversión
+ * al `endDate` exclusivo que se guarda ocurre en el llamador.
+ */
+export function validateAllDayInterval(startDate: string, endDateInclusive: string): string | null {
+  if (!startDate || !endDateInclusive) {
+    return "Completa fecha de inicio y fin.";
+  }
+  if (endDateInclusive < startDate) {
+    return "La fecha de fin debe ser igual o posterior a la de inicio.";
+  }
+  return null;
+}

@@ -21,3 +21,17 @@ export const CALENDAR_ICON_SVG = `
   <rect x="0" y="14" width="16" height="2" />
 </svg>
 `;
+
+/** Icono de campana (avisos), mismo estilo de bloques que el de calendario. */
+export const BELL_ICON_SVG = `
+<svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges" fill="currentColor">
+  <rect x="7" y="1" width="2" height="1" />
+  <rect x="6" y="2" width="4" height="1" />
+  <rect x="5" y="3" width="6" height="2" />
+  <rect x="4" y="5" width="1" height="5" />
+  <rect x="11" y="5" width="1" height="5" />
+  <rect x="3" y="10" width="10" height="2" />
+  <rect x="6" y="12" width="4" height="1" />
+  <rect x="7" y="13" width="2" height="1" />
+</svg>
+`;

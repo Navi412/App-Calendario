@@ -59,7 +59,10 @@ export async function persist(): Promise<void> {
  * si la columna ya existe, y ese error concreto se ignora a propósito.
  */
 function runMigrations(db: Database): void {
-  const migrations = ["ALTER TABLE events ADD COLUMN color TEXT NOT NULL DEFAULT 'blue'"];
+  const migrations = [
+    "ALTER TABLE events ADD COLUMN color TEXT NOT NULL DEFAULT 'blue'",
+    "ALTER TABLE events ADD COLUMN calendar_id TEXT",
+  ];
   for (const migration of migrations) {
     try {
       db.run(migration);
@@ -68,6 +71,48 @@ function runMigrations(db: Database): void {
       if (!message.includes("duplicate column name")) throw err;
     }
   }
+  // Solo ahora se garantiza que calendar_id existe en cualquier base, nueva o migrada.
+  db.run("CREATE INDEX IF NOT EXISTS idx_events_calendar ON events (calendar_id)");
+}
+
+/**
+ * Garantiza el invariante "siempre hay al menos un calendario y ningún
+ * evento se queda sin calendar_id" -- necesario tanto en una base nueva
+ * (nunca hubo calendarios) como en una que se actualiza desde antes de que
+ * existiera esta tabla (sus eventos tienen calendar_id NULL tras la
+ * migración de arriba).
+ */
+function ensureDefaultCalendar(db: Database): void {
+  const rows = db.exec("SELECT id FROM calendars ORDER BY created_at ASC LIMIT 1");
+  const existingId = rows[0]?.values[0]?.[0] as string | undefined;
+  const defaultId = existingId ?? crypto.randomUUID();
+
+  if (!existingId) {
+    const now = new Date().toISOString();
+    db.run("INSERT INTO calendars (id, name, color, created_at, updated_at) VALUES (?, ?, ?, ?, ?)", [
+      defaultId,
+      "Mi calendario",
+      "blue",
+      now,
+      now,
+    ]);
+  }
+
+  db.run("UPDATE events SET calendar_id = ? WHERE calendar_id IS NULL", [defaultId]);
+}
+
+/**
+ * Deja una `Database` (nueva o cargada desde bytes existentes) al día:
+ * esquema, migraciones de columnas y el invariante del calendario por
+ * defecto. Aislado de `getDb()` (que además carga/guarda en IndexedDB, solo
+ * disponible en el navegador) para poder probarlo contra una base sql.js en
+ * memoria sin depender de IndexedDB -- ver sqlite.test.ts, que simula
+ * justamente una base creada antes de que existiera `calendar_id`.
+ */
+export function bootstrapSchema(db: Database): void {
+  db.run(SCHEMA_SQL);
+  runMigrations(db);
+  ensureDefaultCalendar(db);
 }
 
 export async function getDb(): Promise<Database> {
@@ -76,11 +121,11 @@ export async function getDb(): Promise<Database> {
   const SQL = await initSqlJs({ locateFile: () => sqlWasmUrl });
   const existingBytes = await loadBytes();
   const db = existingBytes ? new SQL.Database(existingBytes) : new SQL.Database();
-  db.run(SCHEMA_SQL);
-  runMigrations(db);
+  bootstrapSchema(db);
   dbInstance = db;
-  if (!existingBytes) {
-    await persist();
-  }
+  // Persiste siempre (no solo en base nueva): tanto la migración de
+  // calendar_id como el backfill del calendario por defecto pueden mutar
+  // una base ya existente en IndexedDB.
+  await persist();
   return dbInstance;
 }
