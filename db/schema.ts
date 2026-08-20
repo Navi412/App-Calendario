@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS events (
   title       TEXT NOT NULL,
   description TEXT,
   location    TEXT,
+  color       TEXT NOT NULL DEFAULT 'blue',
 
   start_date  TEXT NOT NULL,
   start_time  TEXT,

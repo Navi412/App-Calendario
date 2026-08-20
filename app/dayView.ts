@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import type { TimedEvent } from "../core/model/event.js";
 import { toViewerInterval } from "./eventPresentation.js";
+import { EVENT_COLOR_VAR } from "./formFields.js";
 import { HOUR_HEIGHT_PX } from "./gridConstants.js";
 import { escapeHtml } from "./util.js";
 
@@ -11,6 +12,8 @@ export interface RenderableBlock {
   readonly startLabel: string;
   readonly endLabel: string;
 }
+
+export type EventClickHandler = (event: TimedEvent) => void;
 
 function minutesSinceMidnight(time: string): number {
   const [h, m] = time.split(":").map(Number);
@@ -43,7 +46,28 @@ export function layoutDay(
   });
 }
 
-export function renderDayGrid(container: HTMLElement, blocks: readonly RenderableBlock[]): HTMLElement {
+/** Botón-bloque de evento, compartido entre la vista de día y las columnas de la vista de semana. */
+export function createEventBlockButton(
+  block: RenderableBlock,
+  extraClass: string,
+  onEventClick: EventClickHandler,
+): HTMLButtonElement {
+  const el = document.createElement("button");
+  el.type = "button";
+  el.className = `event-block ${extraClass}`.trim();
+  el.style.top = `${block.topPx}px`;
+  el.style.height = `${block.heightPx}px`;
+  el.style.setProperty("--event-color", EVENT_COLOR_VAR[block.event.color]);
+  el.innerHTML = `<div>${escapeHtml(block.event.title)}</div><div class="event-time">${block.startLabel}–${block.endLabel}</div>`;
+  el.addEventListener("click", () => onEventClick(block.event));
+  return el;
+}
+
+export function renderDayGrid(
+  container: HTMLElement,
+  blocks: readonly RenderableBlock[],
+  onEventClick: EventClickHandler,
+): HTMLElement {
   container.innerHTML = "";
   const grid = document.createElement("div");
   grid.className = "day-grid";
@@ -66,12 +90,7 @@ export function renderDayGrid(container: HTMLElement, blocks: readonly Renderabl
   container.appendChild(grid);
 
   for (const block of blocks) {
-    const el = document.createElement("div");
-    el.className = "event-block";
-    el.style.top = `${block.topPx}px`;
-    el.style.height = `${block.heightPx}px`;
-    el.innerHTML = `<div>${escapeHtml(block.event.title)}</div><div class="event-time">${block.startLabel}–${block.endLabel}</div>`;
-    grid.appendChild(el);
+    grid.appendChild(createEventBlockButton(block, "", onEventClick));
   }
 
   return grid;

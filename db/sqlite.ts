@@ -52,13 +52,33 @@ export async function persist(): Promise<void> {
   await saveBytes(dbInstance.export());
 }
 
+/**
+ * Columnas añadidas después de la creación inicial de la tabla. `CREATE
+ * TABLE IF NOT EXISTS` no las añade a una base ya existente en el
+ * IndexedDB de un usuario, así que se intentan una por una; SQLite lanza
+ * si la columna ya existe, y ese error concreto se ignora a propósito.
+ */
+function runMigrations(db: Database): void {
+  const migrations = ["ALTER TABLE events ADD COLUMN color TEXT NOT NULL DEFAULT 'blue'"];
+  for (const migration of migrations) {
+    try {
+      db.run(migration);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (!message.includes("duplicate column name")) throw err;
+    }
+  }
+}
+
 export async function getDb(): Promise<Database> {
   if (dbInstance) return dbInstance;
 
   const SQL = await initSqlJs({ locateFile: () => sqlWasmUrl });
   const existingBytes = await loadBytes();
-  dbInstance = existingBytes ? new SQL.Database(existingBytes) : new SQL.Database();
-  dbInstance.run(SCHEMA_SQL);
+  const db = existingBytes ? new SQL.Database(existingBytes) : new SQL.Database();
+  db.run(SCHEMA_SQL);
+  runMigrations(db);
+  dbInstance = db;
   if (!existingBytes) {
     await persist();
   }

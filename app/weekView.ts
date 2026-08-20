@@ -1,8 +1,7 @@
 import { DateTime } from "luxon";
 import type { TimedEvent } from "../core/model/event.js";
-import { layoutDay, renderNowLine } from "./dayView.js";
+import { createEventBlockButton, layoutDay, renderNowLine, type EventClickHandler } from "./dayView.js";
 import { HOUR_HEIGHT_PX } from "./gridConstants.js";
-import { escapeHtml } from "./util.js";
 
 export function renderWeekGrid(
   container: HTMLElement,
@@ -10,6 +9,7 @@ export function renderWeekGrid(
   eventsByDate: ReadonlyMap<string, TimedEvent[]>,
   viewerTzId: string,
   todayDate: string,
+  onEventClick: EventClickHandler,
 ): void {
   container.innerHTML = "";
 
@@ -52,12 +52,7 @@ export function renderWeekGrid(
 
     const blocks = layoutDay(eventsByDate.get(date) ?? [], date, viewerTzId);
     for (const block of blocks) {
-      const el = document.createElement("div");
-      el.className = "event-block week-event-block";
-      el.style.top = `${block.topPx}px`;
-      el.style.height = `${block.heightPx}px`;
-      el.innerHTML = `<div>${escapeHtml(block.event.title)}</div><div class="event-time">${block.startLabel}</div>`;
-      column.appendChild(el);
+      column.appendChild(createEventBlockButton(block, "week-event-block", onEventClick));
     }
 
     renderNowLine(column, date, viewerTzId);

@@ -5,11 +5,17 @@ export type IsoDate = string; // 'YYYY-MM-DD'
 export type IsoTime = string; // 'HH:mm:ss'
 export type IanaTzId = string; // p.ej. 'America/New_York'
 
+/** Paleta cerrada de colores de evento (claves, no hex -- el mapeo a un valor visual concreto vive en /app). */
+export const EVENT_COLORS = ["blue", "green", "yellow", "pink", "red"] as const;
+export type EventColor = (typeof EVENT_COLORS)[number];
+export const DEFAULT_EVENT_COLOR: EventColor = "blue";
+
 interface EventBase {
   readonly id: string;
   readonly title: string;
   readonly description?: string;
   readonly location?: string;
+  readonly color: EventColor;
 }
 
 /** Hora absoluta: ligado a un instante real del mundo (una reunión). */

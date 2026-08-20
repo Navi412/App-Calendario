@@ -1,12 +1,21 @@
 import { DateTime } from "luxon";
-import { listTimedEventsInRange, saveTimedEvent } from "../db/events.repository.js";
+import {
+  deleteEvent,
+  listTimedEventsInRange,
+  saveTimedEvent,
+  updateTimedEvent,
+  type TimedEventInput,
+} from "../db/events.repository.js";
+import type { TimedEvent } from "../core/model/event.js";
 import { wallTimeToUtcIso } from "../core/timezone/convert.js";
 import { groupEventsByViewerDate } from "./eventPresentation.js";
 import { layoutDay, renderDayGrid, renderNowLine } from "./dayView.js";
 import { renderWeekGrid } from "./weekView.js";
 import { renderMonthGrid } from "./monthView.js";
 import { renderEventForm } from "./eventForm.js";
+import { openEventEditModal } from "./eventEditModal.js";
 import { CALENDAR_ICON_SVG } from "./icons.js";
+import { escapeHtml } from "./util.js";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -25,9 +34,9 @@ app.innerHTML = `
     <h1 class="app-title pixel-heading">App Calendario</h1>
     <div class="day-nav">
       <button id="today-btn" class="pixel-btn">Hoy</button>
-      <button id="prev-btn" class="pixel-btn">&larr;</button>
+      <button id="prev-btn" class="pixel-btn" aria-label="Anterior">&larr;</button>
       <span id="current-date-label" class="current-date-label"></span>
-      <button id="next-btn" class="pixel-btn">&rarr;</button>
+      <button id="next-btn" class="pixel-btn" aria-label="Siguiente">&rarr;</button>
     </div>
     <div class="view-switcher">
       <button data-view="day">Día</button>
@@ -41,7 +50,7 @@ app.innerHTML = `
       <button id="create-toggle" class="pixel-btn pixel-btn--primary create-btn">+ Crear</button>
       <div id="form-container" class="event-panel" hidden></div>
     </div>
-    <div id="grid-container"></div>
+    <div id="grid-container">Cargando calendario…</div>
   </div>
 `;
 
@@ -53,6 +62,33 @@ const viewButtons = Array.from(document.querySelectorAll<HTMLButtonElement>(".vi
 
 function capitalize(text: string): string {
   return text.length === 0 ? text : text[0]!.toUpperCase() + text.slice(1);
+}
+
+function openCreatePanel(): void {
+  formContainer.hidden = false;
+}
+
+function closeCreatePanel(): void {
+  formContainer.hidden = true;
+}
+
+function handleEventClick(event: TimedEvent): void {
+  openEventEditModal(event, {
+    onSave: async (id, patch) => {
+      await updateTimedEvent(id, patch);
+      await refresh();
+    },
+    onDelete: async (id) => {
+      await deleteEvent(id);
+      await refresh();
+    },
+  });
+}
+
+function goToDay(dateIso: string): void {
+  currentDate = dateIso;
+  currentView = "day";
+  void refresh();
 }
 
 /** Rango [inicio, fin) visible en UTC, y la etiqueta a mostrar, según el modo de vista. */
@@ -88,7 +124,7 @@ function computeVisibleRange(): { startUtc: string; endUtc: string; labelText: s
   };
 }
 
-async function refresh(): Promise<void> {
+async function renderCurrentView(): Promise<void> {
   for (const btn of viewButtons) {
     btn.classList.toggle("is-active", btn.dataset["view"] === currentView);
   }
@@ -101,26 +137,61 @@ async function refresh(): Promise<void> {
   if (currentView === "day") {
     gridContainer.className = "";
     const blocks = layoutDay(events, currentDate, viewerTzId);
-    const grid = renderDayGrid(gridContainer, blocks);
+    const grid = renderDayGrid(gridContainer, blocks, handleEventClick);
     renderNowLine(grid, currentDate, viewerTzId);
   } else if (currentView === "week") {
     gridContainer.className = "week-view";
     const weekStart = DateTime.fromISO(currentDate).startOf("week");
     const weekDates = Array.from({ length: 7 }, (_, i) => weekStart.plus({ days: i }).toISODate() as string);
-    renderWeekGrid(gridContainer, weekDates, groupEventsByViewerDate(events, viewerTzId), viewerTzId, todayIso());
+    renderWeekGrid(
+      gridContainer,
+      weekDates,
+      groupEventsByViewerDate(events, viewerTzId),
+      viewerTzId,
+      todayIso(),
+      handleEventClick,
+    );
   } else {
     gridContainer.className = "month-view";
-    renderMonthGrid(gridContainer, currentDate, groupEventsByViewerDate(events, viewerTzId), viewerTzId, todayIso());
+    renderMonthGrid(gridContainer, currentDate, groupEventsByViewerDate(events, viewerTzId), viewerTzId, todayIso(), {
+      onEventClick: handleEventClick,
+      onDayClick: goToDay,
+    });
   }
 
-  renderEventForm(formContainer, currentDate, viewerTzId, async (newEvent) => {
-    await saveTimedEvent(newEvent);
-    await refresh();
-  });
+  renderEventForm(
+    formContainer,
+    currentDate,
+    viewerTzId,
+    async (newEvent: TimedEventInput) => {
+      await saveTimedEvent(newEvent);
+      closeCreatePanel();
+      await refresh();
+    },
+    closeCreatePanel,
+  );
+}
+
+async function refresh(): Promise<void> {
+  try {
+    await renderCurrentView();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    gridContainer.className = "";
+    gridContainer.innerHTML = `
+      <div class="boot-error">
+        <p>No se pudo cargar el calendario.</p>
+        <p class="boot-error-detail">${escapeHtml(message)}</p>
+        <button type="button" class="pixel-btn" id="retry-btn">Reintentar</button>
+      </div>
+    `;
+    document.getElementById("retry-btn")?.addEventListener("click", () => void refresh());
+  }
 }
 
 createToggle.addEventListener("click", () => {
-  formContainer.hidden = !formContainer.hidden;
+  if (formContainer.hidden) openCreatePanel();
+  else closeCreatePanel();
 });
 
 for (const btn of viewButtons) {

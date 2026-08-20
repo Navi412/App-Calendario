@@ -70,6 +70,34 @@ body {
   background: var(--accent-yellow);
 }
 
+.pixel-btn--danger {
+  background: var(--accent-red);
+  color: var(--text);
+  border-color: var(--shadow);
+}
+
+.pixel-btn--danger:hover {
+  background: #c40036;
+}
+
+.pixel-btn:focus-visible,
+.event-block:focus-visible,
+.month-chip:focus-visible,
+.month-chip-more:focus-visible,
+.month-daynum:focus-visible {
+  outline: 2px solid var(--accent-yellow);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
 /* --- Barra superior (imita Google Calendar: logo, Hoy, flechas, fecha) --- */
 .topbar {
   display: flex;
@@ -189,6 +217,10 @@ body {
   color: var(--accent-blue);
 }
 
+form[hidden] {
+  display: none;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -220,12 +252,72 @@ form select:focus {
   outline-offset: 1px;
 }
 
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.form-actions .pixel-btn {
+  flex: 1;
+}
+
+.form-error {
+  background: var(--accent-red);
+  color: var(--text);
+  border: 2px solid var(--shadow);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.form-error[hidden] {
+  display: none;
+}
+
+/* --- Selector de color del evento --- */
+.color-swatches {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  background: var(--swatch-color);
+  border: 2px solid var(--shadow);
+  cursor: pointer;
+  display: block;
+  position: relative;
+}
+
+.color-swatch input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.color-swatch:has(input:checked) {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+.color-swatch:has(input:focus-visible) {
+  outline: 3px solid var(--accent-yellow);
+  outline-offset: 2px;
+}
+
 /* --- Rejilla de día --- */
 .day-grid {
   position: relative;
   background: var(--panel-bg);
   border: 2px solid var(--border);
   box-shadow: 4px 4px 0 var(--shadow);
+  max-height: 65vh;
+  overflow-y: auto;
 }
 
 .hour-row {
@@ -253,14 +345,21 @@ form select:focus {
   position: absolute;
   left: 60px;
   right: 6px;
-  background: var(--accent-blue);
+  background: var(--event-color, var(--accent-blue));
   color: var(--panel-bg);
   border: 2px solid var(--shadow);
   box-shadow: 2px 2px 0 var(--shadow);
   border-radius: 0;
   padding: 2px 6px;
+  font-family: "VT323", monospace;
   font-size: 0.85rem;
+  text-align: left;
   overflow: hidden;
+  cursor: pointer;
+}
+
+.event-block:hover {
+  filter: brightness(1.15);
 }
 
 .event-block .event-time {
@@ -409,13 +508,13 @@ form select:focus {
 }
 
 .month-cell {
-  min-height: 96px;
+  min-height: 118px;
   border-left: 1px solid var(--grid-line);
   border-bottom: 1px solid var(--grid-line);
-  padding: 0.3rem;
+  padding: 0.35rem;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .month-cell.is-outside {
@@ -428,9 +527,19 @@ form select:focus {
 
 .month-daynum {
   font-family: "Press Start 2P", monospace;
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: var(--text);
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.2rem;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.month-daynum:hover {
+  background: var(--panel-bg-alt);
+  color: var(--accent-yellow);
 }
 
 .month-cell.is-today .month-daynum {
@@ -438,17 +547,127 @@ form select:focus {
 }
 
 .month-chip {
-  background: var(--accent-blue);
+  background: var(--event-color, var(--accent-blue));
   color: var(--panel-bg);
   border: 1px solid var(--shadow);
-  font-size: 0.65rem;
-  padding: 1px 4px;
+  font-family: "VT323", monospace;
+  font-size: 0.9rem;
+  line-height: 1.1;
+  padding: 2px 5px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+.month-chip:hover {
+  filter: brightness(1.15);
 }
 
 .month-chip-more {
-  font-size: 0.65rem;
+  font-family: "VT323", monospace;
+  font-size: 0.85rem;
   color: var(--text-muted);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.month-chip-more:hover {
+  color: var(--text);
+}
+
+/* --- Modal de edición de evento --- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 1rem;
+}
+
+.modal-panel {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: "Press Start 2P", monospace;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.2rem 0.4rem;
+}
+
+.modal-close:hover {
+  color: var(--accent-red);
+}
+
+.modal-delete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.modal-delete-confirm[hidden] {
+  display: none;
+}
+
+/* --- Pantalla de error de arranque --- */
+.boot-error {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text);
+}
+
+.boot-error-detail {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 1rem;
+}
+
+/* --- Responsive --- */
+@media (max-width: 760px) {
+  body {
+    padding: 0.75rem;
+  }
+
+  .topbar {
+    gap: 0.6rem;
+  }
+
+  .viewer-tz {
+    margin-left: 0;
+    width: 100%;
+    order: 10;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    order: -1;
+  }
+
+  .event-panel {
+    width: 100%;
+  }
 }
