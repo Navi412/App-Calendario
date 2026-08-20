@@ -1,8 +1,8 @@
 import { DateTime } from "luxon";
 import type { TimedEvent } from "../core/model/event.js";
-import { utcIsoToWallTime, wallTimeToUtcIso } from "../core/timezone/convert.js";
-
-const HOUR_HEIGHT_PX = 48;
+import { toViewerInterval } from "./eventPresentation.js";
+import { HOUR_HEIGHT_PX } from "./gridConstants.js";
+import { escapeHtml } from "./util.js";
 
 export interface RenderableBlock {
   readonly event: TimedEvent;
@@ -17,24 +17,17 @@ function minutesSinceMidnight(time: string): number {
   return (h ?? 0) * 60 + (m ?? 0);
 }
 
-/**
- * Traduce eventos (guardados en hora de pared + tz propia) a posiciones en
- * una rejilla de un día, en la zona del visor. Esta reinterpretación es la
- * única conversión de zona que existe en toda la app — vive aquí, en
- * presentación, nunca en /core ni en /db (ver CLAUDE.md, "la regla de oro").
- */
+/** Traduce eventos a posiciones en la rejilla de un único día, en la zona del visor. */
 export function layoutDay(
   events: readonly TimedEvent[],
   viewerDate: string,
   viewerTzId: string,
 ): RenderableBlock[] {
   return events.map((event) => {
-    const startUtc = wallTimeToUtcIso(event.startDate, event.startTime, event.tzId);
-    const endUtc = wallTimeToUtcIso(event.endDate, event.endTime, event.tzId);
-    const startWall = utcIsoToWallTime(startUtc, viewerTzId);
-    const endWall = utcIsoToWallTime(endUtc, viewerTzId);
+    const startWall = toViewerInterval(event, viewerTzId);
+    const endWall = { date: startWall.endDate, time: startWall.endTime };
 
-    const dayStartMinutes = startWall.date === viewerDate ? minutesSinceMidnight(startWall.time) : 0;
+    const dayStartMinutes = startWall.startDate === viewerDate ? minutesSinceMidnight(startWall.startTime) : 0;
     const dayEndMinutes = endWall.date === viewerDate ? minutesSinceMidnight(endWall.time) : 24 * 60;
 
     const topPx = (dayStartMinutes / 60) * HOUR_HEIGHT_PX;
@@ -44,16 +37,10 @@ export function layoutDay(
       event,
       topPx,
       heightPx,
-      startLabel: startWall.time.slice(0, 5),
+      startLabel: startWall.startTime.slice(0, 5),
       endLabel: endWall.time.slice(0, 5),
     };
   });
-}
-
-function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
 }
 
 export function renderDayGrid(container: HTMLElement, blocks: readonly RenderableBlock[]): HTMLElement {
@@ -91,10 +78,10 @@ export function renderDayGrid(container: HTMLElement, blocks: readonly Renderabl
 }
 
 /**
- * Dibuja (o mueve) la línea roja de "ahora" sobre la rejilla, como en Google
- * Calendar. Solo se muestra cuando el día visible es hoy en la zona del
- * visor. Se puede llamar en un intervalo para reposicionarla sin volver a
- * pedir los eventos.
+ * Dibuja (o mueve) la línea roja de "ahora" sobre una rejilla de horas, como
+ * en Google Calendar. Solo se muestra cuando `viewerDate` es hoy en la zona
+ * del visor. Sirve tanto para la vista de día como para una columna de la
+ * vista de semana -- solo necesita el contenedor y la fecha de esa columna.
  */
 export function renderNowLine(grid: HTMLElement, viewerDate: string, viewerTzId: string): void {
   grid.querySelector(".now-line")?.remove();

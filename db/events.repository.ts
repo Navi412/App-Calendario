@@ -56,8 +56,8 @@ export async function saveTimedEvent(event: NewTimedEvent): Promise<TimedEvent> 
   };
 }
 
-/** Devuelve los eventos de hora absoluta cuyo instante de inicio cae en `dateIso` (día UTC-naive, filtrado en el cliente por rango). */
-export async function listTimedEventsForDay(startUtc: string, endUtc: string): Promise<TimedEvent[]> {
+/** Devuelve los eventos de hora absoluta que se solapan con [startUtc, endUtc). Sirve tanto para un día como para una semana o un mes -- el tamaño del rango lo decide quien llama. */
+export async function listTimedEventsInRange(startUtc: string, endUtc: string): Promise<TimedEvent[]> {
   const db = await getDb();
   const result = db.exec(
     `SELECT id, title, description, location, start_date, start_time, end_date, end_time, tz_id

@@ -115,6 +115,38 @@ body {
   padding: 0.25rem 0.6rem;
 }
 
+/* --- Selector Día/Semana/Mes --- */
+.view-switcher {
+  display: flex;
+  border: 2px solid var(--border);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+
+.view-switcher button {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  background: var(--panel-bg-alt);
+  border: none;
+  border-right: 2px solid var(--border);
+  padding: 0.55rem 0.6rem;
+  cursor: pointer;
+}
+
+.view-switcher button:last-child {
+  border-right: none;
+}
+
+.view-switcher button:hover:not(.is-active) {
+  background: var(--panel-bg);
+  color: var(--text);
+}
+
+.view-switcher button.is-active {
+  background: var(--accent-blue);
+  color: var(--panel-bg);
+}
+
 /* --- Layout general: sidebar + vista de día --- */
 .layout {
   display: grid;
@@ -254,4 +286,169 @@ form select:focus {
   width: 10px;
   height: 10px;
   background: var(--accent-red);
+}
+
+/* --- Vista de semana --- */
+.week-view {
+  background: var(--panel-bg);
+  border: 2px solid var(--border);
+  box-shadow: 4px 4px 0 var(--shadow);
+  overflow: hidden;
+}
+
+.week-header {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+}
+
+.week-header-gutter {
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.week-header-day {
+  flex: 1;
+  text-align: center;
+  padding: 0.4rem 0.2rem;
+  border-left: 1px solid var(--grid-line);
+}
+
+.week-header-day.is-today {
+  background: var(--panel-bg-alt);
+}
+
+.week-header-weekday {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.week-header-daynum {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.8rem;
+  color: var(--text);
+  margin-top: 0.2rem;
+}
+
+.week-header-day.is-today .week-header-daynum {
+  color: var(--accent-yellow);
+}
+
+.week-body {
+  display: flex;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.hour-gutter {
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.hour-gutter-label {
+  height: 48px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-right: 2px solid var(--grid-line);
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.week-columns {
+  display: flex;
+  flex: 1;
+}
+
+.week-day-column {
+  flex: 1;
+  position: relative;
+  border-left: 1px solid var(--grid-line);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 47px,
+    var(--grid-line) 47px,
+    var(--grid-line) 48px
+  );
+}
+
+.week-event-block {
+  left: 2px;
+  right: 2px;
+  font-size: 0.65rem;
+}
+
+.week-day-column .now-line {
+  left: 0;
+}
+
+/* --- Vista de mes --- */
+.month-view {
+  background: var(--panel-bg);
+  border: 2px solid var(--border);
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+
+.month-weekday-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 2px solid var(--border);
+}
+
+.month-weekday-label {
+  text-align: center;
+  padding: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.month-cell {
+  min-height: 96px;
+  border-left: 1px solid var(--grid-line);
+  border-bottom: 1px solid var(--grid-line);
+  padding: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.month-cell.is-outside {
+  opacity: 0.4;
+}
+
+.month-cell.is-today {
+  background: var(--panel-bg-alt);
+}
+
+.month-daynum {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.65rem;
+  color: var(--text);
+  margin-bottom: 0.15rem;
+}
+
+.month-cell.is-today .month-daynum {
+  color: var(--accent-yellow);
+}
+
+.month-chip {
+  background: var(--accent-blue);
+  color: var(--panel-bg);
+  border: 1px solid var(--shadow);
+  font-size: 0.65rem;
+  padding: 1px 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.month-chip-more {
+  font-size: 0.65rem;
+  color: var(--text-muted);
 }
