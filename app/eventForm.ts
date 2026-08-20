@@ -21,8 +21,8 @@ export function renderEventForm(
   onSubmit: (event: NewTimedEvent) => void,
 ): void {
   container.innerHTML = `
+    <h2>Nuevo evento</h2>
     <form>
-      <h2 style="margin:0 0 0.25rem;font-size:1rem;">Nuevo evento (hora absoluta)</h2>
       <label>Título <input name="title" required /></label>
       <label>Fecha inicio <input name="startDate" type="date" value="${defaultDate}" required /></label>
       <label>Hora inicio <input name="startTime" type="time" value="09:00" required /></label>
@@ -31,7 +31,7 @@ export function renderEventForm(
       <label>Zona horaria
         <select name="tzId">${timezoneOptions(defaultTzId)}</select>
       </label>
-      <button type="submit">Crear evento</button>
+      <button type="submit" class="pixel-btn pixel-btn--primary">Crear evento</button>
     </form>
   `;
 

@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import type { TimedEvent } from "../core/model/event.js";
 import { utcIsoToWallTime, wallTimeToUtcIso } from "../core/timezone/convert.js";
 
@@ -55,7 +56,7 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
-export function renderDayGrid(container: HTMLElement, blocks: readonly RenderableBlock[]): void {
+export function renderDayGrid(container: HTMLElement, blocks: readonly RenderableBlock[]): HTMLElement {
   container.innerHTML = "";
   const grid = document.createElement("div");
   grid.className = "day-grid";
@@ -85,4 +86,25 @@ export function renderDayGrid(container: HTMLElement, blocks: readonly Renderabl
     el.innerHTML = `<div>${escapeHtml(block.event.title)}</div><div class="event-time">${block.startLabel}–${block.endLabel}</div>`;
     grid.appendChild(el);
   }
+
+  return grid;
+}
+
+/**
+ * Dibuja (o mueve) la línea roja de "ahora" sobre la rejilla, como en Google
+ * Calendar. Solo se muestra cuando el día visible es hoy en la zona del
+ * visor. Se puede llamar en un intervalo para reposicionarla sin volver a
+ * pedir los eventos.
+ */
+export function renderNowLine(grid: HTMLElement, viewerDate: string, viewerTzId: string): void {
+  grid.querySelector(".now-line")?.remove();
+
+  const now = DateTime.now().setZone(viewerTzId);
+  if (now.toISODate() !== viewerDate) return;
+
+  const minutes = now.hour * 60 + now.minute;
+  const el = document.createElement("div");
+  el.className = "now-line";
+  el.style.top = `${(minutes / 60) * HOUR_HEIGHT_PX}px`;
+  grid.appendChild(el);
 }
