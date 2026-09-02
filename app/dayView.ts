@@ -27,6 +27,8 @@ export type EventClickHandler = (event: ScheduledEvent) => void;
  */
 export type EventDragHandler = (event: ScheduledEvent, deltaMinutes: number, newDate?: string) => void;
 export type EventResizeHandler = (event: ScheduledEvent, deltaMinutes: number) => void;
+/** Click en un hueco vacío de la rejilla (no sobre un evento) -- abre el popup de creación rápida en esa hora. */
+export type EmptySlotClickHandler = (startTime: string, clientX: number, clientY: number) => void;
 /** Dado un punto de la pantalla, en qué fecha (columna) cae -- solo lo necesita la vista de semana; la de día no tiene columnas entre las que cambiar. */
 export type ResolveDateAtPoint = (clientX: number, clientY: number) => string | null;
 
@@ -85,6 +87,15 @@ function snapTopPx(px: number): number {
 
 function snapHeightPx(px: number): number {
   return Math.max(SNAP_PX, roundToSnap(px));
+}
+
+/** Convierte un desplazamiento vertical (px desde las 00:00) en hora de pared "HH:mm:ss", redondeada al mismo bloque de 15 min que usan arrastrar/redimensionar. Compartida por la rejilla de día y la de semana para que un click en hueco vacío arranque el popup de creación rápida en la hora exacta bajo el cursor. */
+export function timeAtOffsetPx(offsetYPx: number): string {
+  const snappedPx = snapTopPx(offsetYPx);
+  const totalMinutes = Math.round((snappedPx / HOUR_HEIGHT_PX) * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`;
 }
 
 function withPointerCapture(el: HTMLElement, pointerId: number, action: () => void): void {
@@ -249,6 +260,7 @@ export function renderDayGrid(
   onEventClick: EventClickHandler,
   onEventDrag: EventDragHandler,
   onEventResize: EventResizeHandler,
+  onEmptySlotClick?: EmptySlotClickHandler,
 ): HTMLElement {
   container.innerHTML = "";
   const grid = document.createElement("div");
@@ -265,6 +277,16 @@ export function renderDayGrid(
 
     const track = document.createElement("div");
     track.className = "hour-track";
+    if (onEmptySlotClick) {
+      // El track no tiene hijos (los bloques de evento se cuelgan directamente
+      // de `grid`, ver más abajo), así que un click aquí siempre cae en hueco
+      // vacío -- no hace falta comprobar el target.
+      track.addEventListener("click", (e) => {
+        const trackRect = track.getBoundingClientRect();
+        const dayOffsetPx = hour * HOUR_HEIGHT_PX + (e.clientY - trackRect.top);
+        onEmptySlotClick(timeAtOffsetPx(dayOffsetPx), e.clientX, e.clientY);
+      });
+    }
     row.appendChild(track);
 
     grid.appendChild(row);

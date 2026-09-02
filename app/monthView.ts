@@ -9,6 +9,8 @@ const WEEKDAY_LABELS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"];
 export interface MonthGridHandlers {
   readonly onEventClick: (event: CalendarEvent) => void;
   readonly onDayClick: (dateIso: string) => void;
+  /** Click en hueco vacío de la celda (no en el número de día ni en un chip) -- abre el popup de creación rápida para ese día. */
+  readonly onCellClick?: (dateIso: string, clientX: number, clientY: number) => void;
 }
 
 /** `monthAnchorDate` es cualquier fecha ISO dentro del mes a mostrar. */
@@ -47,6 +49,13 @@ export function renderMonthGrid(
 
     const cell = document.createElement("div");
     cell.className = `month-cell${isCurrentMonth ? "" : " is-outside"}${isToday ? " is-today" : ""}`;
+    if (handlers.onCellClick) {
+      const onCellClick = handlers.onCellClick;
+      cell.addEventListener("click", (e) => {
+        if ((e.target as HTMLElement).closest(".month-daynum, .month-chip, .month-chip-more")) return;
+        onCellClick(dateIso, e.clientX, e.clientY);
+      });
+    }
 
     const dayNumBtn = document.createElement("button");
     dayNumBtn.type = "button";

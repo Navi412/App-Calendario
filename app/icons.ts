@@ -1,37 +1,22 @@
-/** Icono de calendario dibujado a mano, píxel a píxel (16x16, sin antialiasing). */
+/** Icono de calendario (logo de la app). */
 export const CALENDAR_ICON_SVG = `
-<svg class="app-icon" width="28" height="28" viewBox="0 0 16 16" shape-rendering="crispEdges" fill="currentColor">
-  <rect x="2" y="0" width="4" height="2" />
-  <rect x="10" y="0" width="4" height="2" />
-  <rect x="2" y="2" width="4" height="2" />
-  <rect x="10" y="2" width="4" height="2" />
-  <rect x="0" y="4" width="16" height="2" />
-  <rect x="0" y="6" width="2" height="2" />
-  <rect x="14" y="6" width="2" height="2" />
-  <rect x="0" y="8" width="2" height="2" />
-  <rect x="4" y="8" width="8" height="2" />
-  <rect x="14" y="8" width="2" height="2" />
-  <rect x="0" y="10" width="2" height="2" />
-  <rect x="4" y="10" width="2" height="2" />
-  <rect x="10" y="10" width="2" height="2" />
-  <rect x="14" y="10" width="2" height="2" />
-  <rect x="0" y="12" width="2" height="2" />
-  <rect x="4" y="12" width="8" height="2" />
-  <rect x="14" y="12" width="2" height="2" />
-  <rect x="0" y="14" width="16" height="2" />
+<svg class="app-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="3.5" y="5" width="17" height="15.5" rx="3.5" />
+  <path d="M3.5 9.5h17" />
+  <path d="M8 3v3.5" />
+  <path d="M16 3v3.5" />
+  <circle cx="8" cy="13.5" r="1" fill="currentColor" stroke="none" />
+  <circle cx="12" cy="13.5" r="1" fill="currentColor" stroke="none" />
+  <circle cx="16" cy="13.5" r="1" fill="currentColor" stroke="none" />
+  <circle cx="8" cy="17" r="1" fill="currentColor" stroke="none" />
+  <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none" />
 </svg>
 `;
 
-/** Icono de campana (avisos), mismo estilo de bloques que el de calendario. */
+/** Icono de campana (avisos de eventos próximos). */
 export const BELL_ICON_SVG = `
-<svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges" fill="currentColor">
-  <rect x="7" y="1" width="2" height="1" />
-  <rect x="6" y="2" width="4" height="1" />
-  <rect x="5" y="3" width="6" height="2" />
-  <rect x="4" y="5" width="1" height="5" />
-  <rect x="11" y="5" width="1" height="5" />
-  <rect x="3" y="10" width="10" height="2" />
-  <rect x="6" y="12" width="4" height="1" />
-  <rect x="7" y="13" width="2" height="1" />
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z" />
+  <path d="M10 20a2 2 0 0 0 4 0" />
 </svg>
 `;

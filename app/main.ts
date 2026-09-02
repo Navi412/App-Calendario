@@ -21,7 +21,7 @@ import {
   type EventSearchResult,
 } from "../db/events.repository.js";
 import { createCalendar, deleteCalendar, listCalendars, updateCalendar, type Calendar } from "../db/calendars.repository.js";
-import type { CalendarEvent } from "../core/model/event.js";
+import { DEFAULT_EVENT_COLOR, type CalendarEvent } from "../core/model/event.js";
 import { wallTimeToUtcIso } from "../core/timezone/convert.js";
 import {
   fromViewerWallTime,
@@ -36,6 +36,7 @@ import { renderMonthGrid } from "./monthView.js";
 import { renderAllDayStrip } from "./alldayStrip.js";
 import { renderEventForm, type NewEventSubmission } from "./eventForm.js";
 import { openEventEditModal } from "./eventEditModal.js";
+import { closeQuickCreatePopover, openQuickCreatePopover, type QuickCreateContext } from "./quickCreate.js";
 import { renderCalendarSwitcher } from "./calendarSwitcher.js";
 import { serializeEventsToIcs } from "./icsExport.js";
 import { parseIcs } from "./icsImport.js";
@@ -124,6 +125,7 @@ function capitalize(text: string): string {
 }
 
 function openCreatePanel(): void {
+  closeQuickCreatePopover();
   formContainer.hidden = false;
 }
 
@@ -198,7 +200,49 @@ async function loadCalendars(): Promise<void> {
   renderSwitcher();
 }
 
+/** Crea el evento del popup de creación rápida y refresca la vista -- color y (para los de hora absoluta) zona horaria van siempre a sus valores por defecto, ya que el popup no ofrece esos campos a propósito (ver quickCreate.ts). */
+async function handleQuickCreate(context: QuickCreateContext, title: string): Promise<void> {
+  if (context.kind === "allday") {
+    const endDate = DateTime.fromISO(context.date).plus({ days: 1 }).toISODate() as string;
+    await saveAllDayEvent({ title, color: DEFAULT_EVENT_COLOR, startDate: context.date, endDate }, activeCalendarId);
+  } else {
+    await saveTimedEvent(
+      {
+        title,
+        color: DEFAULT_EVENT_COLOR,
+        startDate: context.date,
+        startTime: context.startTime,
+        endDate: context.endDate,
+        endTime: context.endTime,
+        tzId: viewerTzId,
+      },
+      activeCalendarId,
+    );
+  }
+  await refresh();
+}
+
+/** Click en hueco vacío de la rejilla de día/semana: abre el popup con una duración por defecto de 1h desde la hora clicada. */
+function openTimedQuickCreate(date: string, startTime: string, clientX: number, clientY: number): void {
+  const end = DateTime.fromISO(`${date}T${startTime}`).plus({ hours: 1 });
+  const context: QuickCreateContext = {
+    kind: "timed",
+    date,
+    startTime,
+    endDate: end.toISODate() as string,
+    endTime: end.toFormat("HH:mm:ss"),
+  };
+  openQuickCreatePopover({ x: clientX, y: clientY }, context, (title) => handleQuickCreate(context, title));
+}
+
+/** Click en hueco vacío de una celda de la vista de mes: abre el popup para crear un evento de día completo ese día. */
+function openAllDayQuickCreate(date: string, clientX: number, clientY: number): void {
+  const context: QuickCreateContext = { kind: "allday", date };
+  openQuickCreatePopover({ x: clientX, y: clientY }, context, (title) => handleQuickCreate(context, title));
+}
+
 function handleEventClick(event: CalendarEvent): void {
+  closeQuickCreatePopover();
   openEventEditModal(event, {
     onSave: async (id, patch) => {
       if (patch.kind === "timed") await updateTimedEvent(id, patch.input);
@@ -388,6 +432,7 @@ function computeVisibleRange(): VisibleRange {
 }
 
 async function renderCurrentView(): Promise<void> {
+  closeQuickCreatePopover();
   for (const btn of viewButtons) {
     btn.classList.toggle("is-active", btn.dataset["view"] === currentView);
   }
@@ -414,6 +459,7 @@ async function renderCurrentView(): Promise<void> {
       handleEventClick,
       (event, delta, newDate) => void handleEventDrag(event, delta, newDate),
       (event, delta) => void handleEventResize(event, delta),
+      (startTime, clientX, clientY) => openTimedQuickCreate(currentDate, startTime, clientX, clientY),
     );
     renderNowLine(grid, currentDate, viewerTzId);
   } else if (currentView === "week") {
@@ -429,6 +475,7 @@ async function renderCurrentView(): Promise<void> {
       handleEventClick,
       (event, delta, newDate) => void handleEventDrag(event, delta, newDate),
       (event, delta) => void handleEventResize(event, delta),
+      openTimedQuickCreate,
     );
   } else {
     gridContainer.className = "month-view";
@@ -440,7 +487,7 @@ async function renderCurrentView(): Promise<void> {
       groupAllDayEventsByDate(allDayEvents, dates),
       viewerTzId,
       todayIso(),
-      { onEventClick: handleEventClick, onDayClick: goToDay },
+      { onEventClick: handleEventClick, onDayClick: goToDay, onCellClick: openAllDayQuickCreate },
     );
   }
 

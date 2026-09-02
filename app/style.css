@@ -1,18 +1,40 @@
-/* Paleta inspirada en 8-bit (16 colores, estilo PICO-8) */
+/* Paleta glass: superficies translúcidas con blur sobre un fondo oscuro con
+   degradados suaves -- los colores de acento van desaturados a propósito
+   (nada de neón) para que el blur se lea como vidrio esmerilado, no como
+   una discoteca. */
 :root {
-  --bg: #101020;
-  --panel-bg: #1d2b53;
-  --panel-bg-alt: #2b3868;
-  --border: #83769c;
-  --grid-line: #3b3868;
-  --text: #fff1e8;
-  --text-muted: #c2c3c7;
-  --accent-blue: #29adff;
-  --accent-green: #00e436;
-  --accent-yellow: #ffec27;
-  --accent-red: #ff004d;
-  --accent-pink: #ff77a8;
-  --shadow: #000000;
+  --bg: #12141c;
+
+  --accent-blue: #7ba7d9;
+  --accent-green: #7ab994;
+  --accent-yellow: #d3b571;
+  --accent-red: #c97b7b;
+  --accent-pink: #b090c4;
+
+  --accent: var(--accent-blue);
+  --accent-rgb: 123, 167, 217;
+  --accent-strong: #3f6a9c;
+  --accent-red-strong: #a85454;
+
+  --panel-bg: rgba(255, 255, 255, 0.055);
+  --panel-bg-alt: rgba(255, 255, 255, 0.09);
+  --panel-bg-solid: #1b1f2c;
+
+  --border: rgba(255, 255, 255, 0.13);
+  --border-strong: rgba(255, 255, 255, 0.24);
+  --grid-line: rgba(255, 255, 255, 0.07);
+
+  --text: #edeff5;
+  --text-muted: #98a1b5;
+  --shadow: rgba(6, 8, 14, 0.45);
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --radius-lg: 20px;
+  --blur: blur(18px) saturate(140%);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
 
   color-scheme: dark;
 }
@@ -30,63 +52,84 @@
   display: none !important;
 }
 
+/* Fondo con degradados suaves y fijos: sin esto, los paneles translúcidos
+   de arriba no tienen nada con textura detrás que el blur pueda esmerilar
+   y el efecto "glass" desaparece, quedando solo como transparencia plana. */
 body {
-  font-family: "VT323", monospace;
-  font-size: 23px;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.45;
   margin: 0;
   padding: 1.25rem;
-  background: var(--bg);
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 700px at 12% -8%, rgba(123, 167, 217, 0.16), transparent 60%),
+    radial-gradient(900px 650px at 100% 0%, rgba(176, 144, 196, 0.12), transparent 55%),
+    radial-gradient(900px 800px at 45% 115%, rgba(122, 185, 148, 0.1), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
-  -webkit-font-smoothing: none;
-  image-rendering: pixelated;
+  -webkit-font-smoothing: antialiased;
 }
 
 .pixel-heading {
-  font-family: "Press Start 2P", monospace;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-/* --- Botones pixel: borde duro + sombra "offset" sin blur, se hunden al pulsar --- */
+/* --- Botones: superficie de vidrio, se aclaran un poco al pasar el
+   cursor y se hunden levemente al pulsar (sin el salto duro de antes) --- */
 .pixel-btn {
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.88rem;
   color: var(--text);
   background: var(--panel-bg-alt);
-  border: 2px solid var(--border);
-  box-shadow: 3px 3px 0 var(--shadow);
-  padding: 0.65rem 0.9rem;
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 10px var(--shadow);
+  padding: 0.6rem 0.95rem;
   cursor: pointer;
-  border-radius: 0;
   line-height: 1.3;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .pixel-btn:hover {
-  background: var(--accent-blue);
-  color: var(--panel-bg);
+  background: rgba(var(--accent-rgb), 0.18);
+  border-color: rgba(var(--accent-rgb), 0.45);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px var(--shadow);
 }
 
 .pixel-btn:active {
-  transform: translate(3px, 3px);
-  box-shadow: none;
+  transform: translateY(0);
+  box-shadow: 0 1px 4px var(--shadow);
 }
 
 .pixel-btn--primary {
-  background: var(--accent-green);
-  color: var(--panel-bg);
-  border-color: var(--shadow);
+  background: var(--accent-strong);
+  color: var(--text);
+  border-color: transparent;
 }
 
 .pixel-btn--primary:hover {
-  background: var(--accent-yellow);
+  background: #4a7bb3;
+  border-color: transparent;
 }
 
 .pixel-btn--danger {
-  background: var(--accent-red);
+  background: var(--accent-red-strong);
   color: var(--text);
-  border-color: var(--shadow);
+  border-color: transparent;
 }
 
 .pixel-btn--danger:hover {
-  background: #c40036;
+  background: #bb5f5f;
+  border-color: transparent;
 }
 
 .pixel-btn:focus-visible,
@@ -94,7 +137,7 @@ body {
 .month-chip:focus-visible,
 .month-chip-more:focus-visible,
 .month-daynum:focus-visible {
-  outline: 2px solid var(--accent-yellow);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -117,12 +160,12 @@ body {
 }
 
 .app-icon {
-  color: var(--accent-blue);
+  color: var(--accent);
   flex-shrink: 0;
 }
 
 .app-title {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   color: var(--text);
   margin: 0;
 }
@@ -134,21 +177,22 @@ body {
 }
 
 .day-nav .pixel-btn {
-  padding: 0.6rem 0.75rem;
+  padding: 0.55rem 0.75rem;
 }
 
 .current-date-label {
-  font-family: "Press Start 2P", monospace;
+  font-weight: 600;
   font-size: 1rem;
-  color: var(--accent-yellow);
+  color: var(--text);
   min-width: 9ch;
 }
 
 .viewer-tz {
   color: var(--text-muted);
-  font-size: 1.05rem;
-  border: 2px dashed var(--border);
-  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.7rem;
 }
 
 /* Agrupa búsqueda/avisos/zona horaria para que envuelvan juntos como bloque
@@ -175,10 +219,10 @@ body {
 
 .calendar-dot {
   display: inline-block;
-  width: 0.8rem;
-  height: 0.8rem;
-  background: var(--cal-color, var(--accent-blue));
-  border: 2px solid var(--shadow);
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--cal-color, var(--accent));
   flex-shrink: 0;
 }
 
@@ -191,18 +235,22 @@ body {
 
 .calendar-switcher-caret {
   font-size: 0.7rem;
+  opacity: 0.7;
 }
 
 .calendar-switcher-panel {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   left: 0;
   z-index: 20;
   width: max(260px, 100%);
-  background: var(--panel-bg);
-  border: 2px solid var(--border);
-  box-shadow: 4px 4px 0 var(--shadow);
-  padding: 0.7rem;
+  background: var(--panel-bg-solid);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 40px var(--shadow);
+  padding: 0.8rem;
 }
 
 .calendar-list {
@@ -225,55 +273,57 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--panel-bg-alt);
+  background: transparent;
   color: var(--text-muted);
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 0.45rem 0.6rem;
   cursor: pointer;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .calendar-list-select:hover {
-  background: var(--bg);
+  background: var(--panel-bg-alt);
   color: var(--text);
 }
 
 .calendar-list-item.is-active .calendar-list-select {
-  background: var(--accent-blue);
-  color: var(--panel-bg);
-  border-color: var(--shadow);
+  background: rgba(var(--accent-rgb), 0.16);
+  color: var(--text);
+  border-color: rgba(var(--accent-rgb), 0.5);
 }
 
 .calendar-list-delete {
-  background: var(--panel-bg-alt);
+  background: transparent;
   color: var(--text-muted);
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 0 0.6rem;
   cursor: pointer;
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .calendar-list-delete:hover {
-  background: var(--accent-red);
-  color: var(--text);
-  border-color: var(--shadow);
+  background: rgba(201, 123, 123, 0.16);
+  color: var(--accent-red);
+  border-color: rgba(201, 123, 123, 0.45);
 }
 
 .calendar-list-edit {
-  background: var(--panel-bg-alt);
+  background: transparent;
   color: var(--text-muted);
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 0 0.6rem;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .calendar-list-edit:hover {
-  background: var(--accent-blue);
-  color: var(--panel-bg);
-  border-color: var(--shadow);
+  background: rgba(var(--accent-rgb), 0.16);
+  color: var(--text);
+  border-color: rgba(var(--accent-rgb), 0.45);
 }
 
 .calendar-list-item--editing {
@@ -288,22 +338,24 @@ body {
 }
 
 .calendar-create-form {
-  border-top: 2px dashed var(--border);
+  border-top: 1px solid var(--border);
   padding-top: 0.7rem;
 }
 
 .calendar-edit-form {
-  border: 2px dashed var(--accent-blue);
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
+  border-radius: var(--radius-sm);
   padding: 0.6rem;
 }
 
 .calendar-edit-form input,
 .calendar-create-form input {
-  font-family: "VT323", monospace;
-  font-size: 1.1rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
   color: var(--text);
-  background: var(--bg);
-  border: 2px solid var(--border);
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 0.4rem 0.5rem;
 }
 
@@ -319,13 +371,13 @@ body {
 .calendar-ics-actions {
   display: flex;
   gap: 0.5rem;
-  border-top: 2px dashed var(--border);
+  border-top: 1px solid var(--border);
   padding-top: 0.7rem;
 }
 
 .calendar-ics-actions .pixel-btn {
   flex: 1;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 /* --- Buscador --- */
@@ -334,30 +386,41 @@ body {
 }
 
 .search-input {
-  font-family: "VT323", monospace;
-  font-size: 1.1rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
   color: var(--text);
-  background: var(--bg);
-  border: 2px solid var(--border);
-  padding: 0.45rem 0.6rem;
+  background: var(--panel-bg-alt);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.7rem;
   width: 16rem;
   max-width: 40vw;
 }
 
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
 .search-input:focus {
-  outline: 3px solid var(--accent-blue);
-  outline-offset: 1px;
+  outline: none;
+  border-color: rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.22);
 }
 
 .search-results {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
   z-index: 20;
-  background: var(--panel-bg);
-  border: 2px solid var(--border);
-  box-shadow: 4px 4px 0 var(--shadow);
+  background: var(--panel-bg-solid);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 40px var(--shadow);
   max-height: 60vh;
   overflow-y: auto;
 }
@@ -371,10 +434,10 @@ body {
   color: var(--text);
   border: none;
   border-bottom: 1px solid var(--grid-line);
-  padding: 0.5rem 0.7rem;
+  padding: 0.55rem 0.75rem;
   cursor: pointer;
-  font-family: "VT323", monospace;
-  font-size: 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
 }
 
 .search-result:last-child {
@@ -390,15 +453,15 @@ body {
 }
 
 .search-result-date {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
 .search-empty {
   margin: 0;
-  padding: 0.6rem 0.7rem;
+  padding: 0.6rem 0.75rem;
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: 0.85rem;
 }
 
 /* --- Aviso de eventos próximos --- */
@@ -409,41 +472,49 @@ body {
 }
 
 .notifications-toggle svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .notifications-toggle.is-active {
   color: var(--accent-yellow);
-  background: var(--panel-bg-alt);
+  background: rgba(211, 181, 113, 0.14);
+  border-color: rgba(211, 181, 113, 0.4);
 }
 
 .notify-lead-select {
-  font-family: "VT323", monospace;
-  font-size: 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
   color: var(--text);
   background: var(--panel-bg-alt);
-  border: 2px solid var(--border);
-  padding: 0.35rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.5rem;
   cursor: pointer;
 }
 
 /* --- Selector Día/Semana/Mes --- */
 .view-switcher {
   display: flex;
-  border: 2px solid var(--border);
-  box-shadow: 3px 3px 0 var(--shadow);
+  background: var(--panel-bg-alt);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .view-switcher button {
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.75rem;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.85rem;
   color: var(--text-muted);
-  background: var(--panel-bg-alt);
+  background: transparent;
   border: none;
-  border-right: 2px solid var(--border);
-  padding: 0.7rem 0.8rem;
+  border-right: 1px solid var(--border);
+  padding: 0.6rem 0.9rem;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .view-switcher button:last-child {
@@ -456,8 +527,8 @@ body {
 }
 
 .view-switcher button.is-active {
-  background: var(--accent-blue);
-  color: var(--panel-bg);
+  background: rgba(var(--accent-rgb), 0.22);
+  color: var(--text);
 }
 
 /* --- Layout general: sidebar + vista de día --- */
@@ -486,16 +557,19 @@ body {
 
 .event-panel {
   background: var(--panel-bg);
-  border: 2px solid var(--border);
-  box-shadow: 4px 4px 0 var(--shadow);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 40px var(--shadow);
   padding: 1.25rem;
 }
 
 .event-panel h2 {
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  font-weight: 600;
   margin: 0 0 1rem;
-  color: var(--accent-blue);
+  color: var(--text);
 }
 
 form {
@@ -507,36 +581,37 @@ form {
 form label {
   display: flex;
   flex-direction: column;
-  font-size: 1.05rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
-  gap: 0.3rem;
+  gap: 0.35rem;
 }
 
 form input,
 form select {
-  font-family: "VT323", monospace;
-  font-size: 1.4rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
   color: var(--text);
-  background: var(--bg);
-  border: 2px solid var(--border);
-  border-radius: 0;
-  padding: 0.5rem 0.6rem;
-  min-height: 2.6rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.65rem;
+  min-height: 2.5rem;
 }
 
 form input:focus,
 form select:focus {
-  outline: 3px solid var(--accent-blue);
-  outline-offset: 1px;
+  outline: none;
+  border-color: rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.22);
 }
 
 /* Los inputs de fecha/hora nativos son el punto de fricción más frecuente
    (segmentos diminutos, difícil corregir un error de un toque) -- se les da
-   más tamaño todavía que al resto de campos de texto. */
+   algo más de tamaño todavía que al resto de campos de texto. */
 form input[type="time"],
 form input[type="date"] {
-  font-size: 1.55rem;
-  padding: 0.55rem 0.7rem;
+  font-size: 1.05rem;
+  padding: 0.6rem 0.7rem;
 }
 
 .form-actions {
@@ -550,18 +625,20 @@ form input[type="date"] {
 }
 
 .form-error {
-  background: var(--accent-red);
+  background: rgba(201, 123, 123, 0.18);
   color: var(--text);
-  border: 2px solid var(--shadow);
-  padding: 0.5rem 0.7rem;
-  font-size: 1rem;
+  border: 1px solid rgba(201, 123, 123, 0.45);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.7rem;
+  font-size: 0.88rem;
   margin: 0;
 }
 
 .recurring-note {
-  border: 2px dashed var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: 0.85rem;
   padding: 0.7rem;
   margin: 0 0 0.7rem;
 }
@@ -575,7 +652,8 @@ form input[type="date"] {
 }
 
 .series-title-row .series-title-display {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -586,29 +664,34 @@ form input[type="date"] {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  border: 2px dashed var(--accent-blue);
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
+  border-radius: var(--radius-sm);
   padding: 0.6rem;
   margin: 0 0 0.7rem;
 }
 
 .rename-series-form input {
-  font-family: "VT323", monospace;
-  font-size: 1.2rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
   color: var(--text);
-  background: var(--bg);
-  border: 2px solid var(--border);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 0.4rem 0.5rem;
 }
 
 /* --- Selector de tipo de evento (hora específica/día completo) --- */
 /* Grupo de botones tipo segmented-control (mismo patrón que .view-switcher):
-   una sola caja con borde/sombra pixel, las opciones se reparten el ancho a
-   partes iguales y se separan por un borde interior -- así quedan
-   "cuadradas" entre sí en vez de flotar como texto suelto. */
+   una sola caja de vidrio, las opciones se reparten el ancho a partes
+   iguales y se separan por un borde interior. */
 .kind-switcher {
   display: flex;
-  border: 2px solid var(--border);
-  box-shadow: 3px 3px 0 var(--shadow);
+  background: var(--panel-bg-alt);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .kind-switcher .kind-option {
@@ -617,12 +700,13 @@ form input[type="date"] {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
-  background: var(--panel-bg-alt);
-  padding: 0.7rem 0.5rem;
-  border-right: 2px solid var(--border);
+  background: transparent;
+  padding: 0.65rem 0.5rem;
+  border-right: 1px solid var(--border);
   text-align: center;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .kind-switcher .kind-option:last-child {
@@ -635,52 +719,48 @@ form input[type="date"] {
 }
 
 .kind-switcher .kind-option:has(input:checked) {
-  background: var(--accent-blue);
-  color: var(--panel-bg);
+  background: rgba(var(--accent-rgb), 0.22);
+  color: var(--text);
 }
 
-/* Casilla de "marcar" con estilo pixel art: cuadrada y hueca sin marcar: un
-   tick dibujado a base de bloques (SVG con crispEdges, sin curvas ni
-   antialiasing, mismo truco que el favicon) al marcarla.
-   min-height/padding en 0 porque si no hereda el min-height:2.6rem de
-   "form input" (pensado para los campos de fecha/hora) y sale un
-   rectángulo alto en vez de un cuadrado. */
+/* Casilla de "marcar" con look de vidrio: hueca sin marcar, con un tick
+   suave dibujado en trazo al marcarla (sin curvas ni bloques). */
 .kind-switcher .kind-option input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   min-height: 0;
   padding: 0;
   margin: 0;
-  border: 2px solid currentColor;
-  border-radius: 0;
+  border: 1.5px solid currentColor;
+  border-radius: 5px;
   background-color: transparent;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 13px 10px;
+  background-size: 11px 9px;
   flex-shrink: 0;
 }
 
 .kind-switcher .kind-option input[type="radio"]:checked {
-  background-color: var(--panel-bg);
-  border-color: var(--shadow);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 8' shape-rendering='crispEdges'%3E%3Crect x='0' y='3' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='1' y='4' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='2' y='5' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='3' y='4' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='4' y='3' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='5' y='2' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='6' y='1' width='2' height='2' fill='%23ffec27'/%3E%3Crect x='7' y='0' width='2' height='2' fill='%23ffec27'/%3E%3C/svg%3E");
+  background-color: rgba(var(--accent-rgb), 0.9);
+  border-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 12' fill='none' stroke='%23edeff5' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 6.5 6 11 14.5 1.5'/%3E%3C/svg%3E");
 }
 
 .kind-option {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 1rem;
+  gap: 0.4rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   cursor: pointer;
 }
 
 form input[type="checkbox"] {
-  width: 1.2rem;
-  height: 1.2rem;
-  accent-color: var(--accent-blue);
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
@@ -701,10 +781,11 @@ form input[type="checkbox"] {
 }
 
 .color-swatch {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   background: var(--swatch-color);
-  border: 2px solid var(--shadow);
+  border: 2px solid rgba(255, 255, 255, 0.15);
   cursor: pointer;
   display: block;
   position: relative;
@@ -720,12 +801,12 @@ form input[type="checkbox"] {
 }
 
 .color-swatch:has(input:checked) {
-  outline: 3px solid var(--text);
+  outline: 2px solid var(--text);
   outline-offset: 2px;
 }
 
 .color-swatch:has(input:focus-visible) {
-  outline: 3px solid var(--accent-yellow);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -743,19 +824,23 @@ form input[type="checkbox"] {
   grid-auto-rows: 27px;
   gap: 3px;
   background: var(--panel-bg);
-  border: 2px solid var(--border);
-  box-shadow: 4px 4px 0 var(--shadow);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 3px;
 }
 
 .allday-chip {
-  background: var(--event-color, var(--accent-blue));
-  color: var(--panel-bg);
-  border: 2px solid var(--shadow);
-  font-family: "VT323", monospace;
-  font-size: 0.95rem;
+  background: var(--event-color, var(--accent));
+  background: color-mix(in srgb, var(--event-color, var(--accent)) 55%, transparent);
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--event-color, var(--accent)) 60%, white 8%);
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
   text-align: left;
-  padding: 1px 6px;
+  padding: 1px 7px;
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
@@ -763,7 +848,7 @@ form input[type="checkbox"] {
 }
 
 .allday-chip:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.2);
 }
 
 /* --- Rejilla de día --- */
@@ -772,8 +857,10 @@ form input[type="checkbox"] {
   --inset-right: 6px;
   position: relative;
   background: var(--panel-bg);
-  border: 2px solid var(--border);
-  box-shadow: 4px 4px 0 var(--shadow);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   max-height: 65vh;
   overflow-y: auto;
 }
@@ -788,29 +875,37 @@ form input[type="checkbox"] {
 .hour-label {
   width: 56px;
   flex-shrink: 0;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   padding: 2px 6px;
-  border-right: 2px solid var(--grid-line);
+  border-right: 1px solid var(--grid-line);
 }
 
 .hour-track {
   flex: 1;
   position: relative;
+  cursor: pointer;
+}
+
+.hour-track:hover {
+  background: rgba(var(--accent-rgb), 0.06);
 }
 
 .event-block {
   position: absolute;
   left: calc(var(--inset-left, 60px) + (100% - var(--inset-left, 60px) - var(--inset-right, 6px)) * var(--col-left, 0));
   width: calc((100% - var(--inset-left, 60px) - var(--inset-right, 6px)) * var(--col-width, 1) - 4px);
-  background: var(--event-color, var(--accent-blue));
-  color: var(--panel-bg);
-  border: 2px solid var(--shadow);
-  box-shadow: 2px 2px 0 var(--shadow);
-  border-radius: 0;
-  padding: 2px 6px;
-  font-family: "VT323", monospace;
-  font-size: 0.95rem;
+  background: var(--event-color, var(--accent));
+  background: color-mix(in srgb, var(--event-color, var(--accent)) 55%, transparent);
+  backdrop-filter: blur(6px);
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--event-color, var(--accent)) 65%, white 10%);
+  border-left: 3px solid var(--event-color, var(--accent));
+  border-radius: 6px;
+  box-shadow: 0 2px 8px var(--shadow);
+  padding: 2px 7px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
   text-align: left;
   overflow: hidden;
   cursor: grab;
@@ -825,13 +920,13 @@ form input[type="checkbox"] {
   cursor: grabbing;
   z-index: 5;
   opacity: 0.85;
-  box-shadow: 4px 4px 0 var(--shadow);
+  box-shadow: 0 8px 20px var(--shadow);
   outline: 2px dashed var(--accent-yellow);
   outline-offset: 2px;
 }
 
 .event-block .event-time {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   opacity: 0.85;
 }
 
@@ -852,13 +947,14 @@ form input[type="checkbox"] {
   bottom: 1px;
   width: 18px;
   height: 2px;
-  background: var(--shadow);
-  opacity: 0.5;
+  border-radius: 1px;
+  background: var(--text);
+  opacity: 0.4;
   transform: translateX(-50%);
 }
 
 .event-block:hover .event-block-resize-handle::after {
-  opacity: 0.9;
+  opacity: 0.8;
 }
 
 /* --- Línea de "ahora", como en Google Calendar --- */
@@ -874,24 +970,27 @@ form input[type="checkbox"] {
 .now-line::before {
   content: "";
   position: absolute;
-  left: -6px;
-  top: -4px;
-  width: 10px;
-  height: 10px;
+  left: -5px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
   background: var(--accent-red);
 }
 
 /* --- Vista de semana --- */
 .week-view {
   background: var(--panel-bg);
-  border: 2px solid var(--border);
-  box-shadow: 4px 4px 0 var(--shadow);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   overflow: hidden;
 }
 
 .week-header {
   display: flex;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .week-header-gutter {
@@ -907,24 +1006,25 @@ form input[type="checkbox"] {
 }
 
 .week-header-day.is-today {
-  background: var(--panel-bg-alt);
+  background: rgba(var(--accent-rgb), 0.12);
 }
 
 .week-header-weekday {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .week-header-daynum {
-  font-family: "Press Start 2P", monospace;
+  font-weight: 600;
   font-size: 0.95rem;
   color: var(--text);
   margin-top: 0.2rem;
 }
 
 .week-header-day.is-today .week-header-daynum {
-  color: var(--accent-yellow);
+  color: var(--accent-blue);
 }
 
 .week-body {
@@ -940,10 +1040,10 @@ form input[type="checkbox"] {
 
 .hour-gutter-label {
   height: 48px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   padding: 2px 6px;
-  border-right: 2px solid var(--grid-line);
+  border-right: 1px solid var(--grid-line);
   border-bottom: 1px solid var(--grid-line);
 }
 
@@ -958,6 +1058,7 @@ form input[type="checkbox"] {
   flex: 1;
   position: relative;
   border-left: 1px solid var(--grid-line);
+  cursor: pointer;
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
@@ -967,8 +1068,12 @@ form input[type="checkbox"] {
   );
 }
 
+.week-day-column:hover {
+  background-color: rgba(var(--accent-rgb), 0.06);
+}
+
 .week-event-block {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
 }
 
 .week-day-column .now-line {
@@ -978,22 +1083,26 @@ form input[type="checkbox"] {
 /* --- Vista de mes --- */
 .month-view {
   background: var(--panel-bg);
-  border: 2px solid var(--border);
-  box-shadow: 4px 4px 0 var(--shadow);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .month-weekday-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  border-bottom: 2px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .month-weekday-label {
   text-align: center;
   padding: 0.5rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .month-grid {
@@ -1009,6 +1118,11 @@ form input[type="checkbox"] {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  cursor: pointer;
+}
+
+.month-cell:hover {
+  background: rgba(var(--accent-rgb), 0.05);
 }
 
 .month-cell.is-outside {
@@ -1016,38 +1130,41 @@ form input[type="checkbox"] {
 }
 
 .month-cell.is-today {
-  background: var(--panel-bg-alt);
+  background: rgba(var(--accent-rgb), 0.1);
 }
 
 .month-daynum {
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.85rem;
   color: var(--text);
   margin-bottom: 0.2rem;
   background: none;
   border: none;
-  padding: 2px 4px;
+  border-radius: 6px;
+  padding: 2px 5px;
   cursor: pointer;
   align-self: flex-start;
 }
 
 .month-daynum:hover {
   background: var(--panel-bg-alt);
-  color: var(--accent-yellow);
+  color: var(--accent-blue);
 }
 
 .month-cell.is-today .month-daynum {
-  color: var(--accent-yellow);
+  color: var(--accent-blue);
 }
 
 .month-chip {
-  background: var(--event-color, var(--accent-blue));
-  color: var(--panel-bg);
-  border: 1px solid var(--shadow);
-  font-family: "VT323", monospace;
-  font-size: 1rem;
+  background: var(--event-color, var(--accent));
+  background: color-mix(in srgb, var(--event-color, var(--accent)) 55%, transparent);
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--event-color, var(--accent)) 60%, white 8%);
+  border-radius: 5px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
   line-height: 1.2;
-  padding: 2px 5px;
+  padding: 2px 6px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1057,12 +1174,12 @@ form input[type="checkbox"] {
 }
 
 .month-chip:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.2);
 }
 
 .month-chip-more {
-  font-family: "VT323", monospace;
-  font-size: 0.95rem;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
   color: var(--text-muted);
   background: none;
   border: none;
@@ -1075,11 +1192,57 @@ form input[type="checkbox"] {
   color: var(--text);
 }
 
+/* --- Popup de creación rápida (click en hueco vacío de rejilla/celda) --- */
+.quick-create-popover {
+  position: fixed;
+  z-index: 30;
+  width: min(260px, calc(100vw - 16px));
+  background: var(--panel-bg-solid);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 40px var(--shadow);
+  padding: 0.75rem;
+}
+
+.quick-create-context {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.quick-create-popover input[name="title"] {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.6rem;
+}
+
+.quick-create-popover input[name="title"]:focus {
+  outline: none;
+  border-color: rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.22);
+}
+
+.quick-create-hint {
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
 /* --- Modal de edición de evento --- */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(8, 9, 14, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1101,8 +1264,7 @@ form input[type="checkbox"] {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-family: "Press Start 2P", monospace;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   cursor: pointer;
   line-height: 1;
   padding: 0.3rem 0.5rem;
@@ -1116,7 +1278,7 @@ form input[type="checkbox"] {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   color: var(--text);
 }
 
@@ -1129,7 +1291,7 @@ form input[type="checkbox"] {
 
 .boot-error-detail {
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: 0.9rem;
   margin: 0.5rem 0 1rem;
 }
 

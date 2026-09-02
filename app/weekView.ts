@@ -3,6 +3,7 @@ import {
   createEventBlockButton,
   layoutDay,
   renderNowLine,
+  timeAtOffsetPx,
   type EventClickHandler,
   type EventDragHandler,
   type EventResizeHandler,
@@ -17,6 +18,9 @@ function resolveDateAtPoint(clientX: number, clientY: number): string | null {
   return column?.dataset["date"] ?? null;
 }
 
+/** Click en un hueco vacío de una columna de día (no sobre un evento) -- abre el popup de creación rápida en esa fecha y hora. */
+export type WeekEmptySlotClickHandler = (dateIso: string, startTime: string, clientX: number, clientY: number) => void;
+
 export function renderWeekGrid(
   container: HTMLElement,
   weekDates: readonly string[],
@@ -26,6 +30,7 @@ export function renderWeekGrid(
   onEventClick: EventClickHandler,
   onEventDrag: EventDragHandler,
   onEventResize: EventResizeHandler,
+  onEmptySlotClick?: WeekEmptySlotClickHandler,
 ): void {
   container.innerHTML = "";
 
@@ -65,6 +70,18 @@ export function renderWeekGrid(
     column.className = "week-day-column";
     column.dataset["date"] = date;
     column.style.height = `${24 * HOUR_HEIGHT_PX}px`;
+
+    if (onEmptySlotClick) {
+      // A diferencia de la rejilla de día, aquí los bloques de evento SÍ son
+      // hijos de la columna (posicionados de forma absoluta dentro de ella),
+      // así que un click que caiga sobre uno de ellos también burbujea hasta
+      // aquí -- hay que ignorarlo explícitamente para no abrir el popup encima.
+      column.addEventListener("click", (e) => {
+        if ((e.target as HTMLElement).closest(".event-block, .now-line")) return;
+        const rect = column.getBoundingClientRect();
+        onEmptySlotClick(date, timeAtOffsetPx(e.clientY - rect.top), e.clientX, e.clientY);
+      });
+    }
 
     const blocks = layoutDay(eventsByDate.get(date) ?? [], date, viewerTzId);
     for (const block of blocks) {
